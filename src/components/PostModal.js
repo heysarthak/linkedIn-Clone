@@ -1,14 +1,64 @@
 import styled from 'styled-components';
 import {useState} from 'react';
-
-import React from 'react'
+import ReactPlayer from "react-player";
+import {connect} from 'react-redux';
+import React from 'react';
+import firebase from 'firebase';
+import {postArticleAPI} from '../actions';
 
 function PostModal(props) {
 
     const [editorText,setEditorText]=useState('');
+
+    const [shareImage,setShareImage]=useState('');
+
+    const [videoLink,setVideoLink]= useState('');
+
+    const [assetArea,setAssetArea]=useState('');
+
+    const handleChange = (e) =>{
+
+        const image = e.target.files[0];
+
+        if (image === ' ' || image === undefined ){
+            alert(`not an image , the file is a ${typeof image}`);
+            return;
+        }
+        setShareImage(image);
+
+    };
+    
+    const switchAssetArea = (area) =>{
+        setShareImage('');
+        setVideoLink('');
+        setAssetArea(area);
+
+    };
+
+    const postArticle =(e)=>{
+        e.preventDefault();
+        if(e.target !== e.currentTarget){
+            return;
+        }
+        const payload ={
+            image:shareImage,
+            video:videoLink,
+            user:props.user,
+            description:editorText,
+            timestamp:firebase.firestore.Timestamp.now()
+
+        };
+        props.postArticle(payload);
+        reset(e);
+    }
+
     const reset =(e)=>{
         setEditorText("");
+        setShareImage("");
+        setVideoLink("");
+        setAssetArea("");
         props.handleClick(e);
+
     };
     return (
     <>
@@ -23,23 +73,47 @@ function PostModal(props) {
                 </Header>
                 <SharedContent>
                     <UserInfo>
-                        <img src="/images/user.svg" alt=""/>
-                        <span>Name</span>
+                        {props.user.photoURL ?<img src={props.user.photoURL}/>:
+                        <img src="/images/user.svg" alt=""/>}
+                        <span>{props.user.displayName}</span>
                     </UserInfo>
                     <Editor>
                         <textarea value={editorText}
                          onChange={(e)=>setEditorText(e.target.value)}
                         placeholder="What do you want to talk about?"
-                        autofocus={true}
-                        ></textarea>
+                        autoFocus={true}
+                        />
+                        { 
+                            assetArea==='image' ?
+                            <UploadImage> 
+                                <input type="file" accept="image/gif, image/jpeg, image/png" name="image" 
+                                    id="file" style ={{display:"none"}}
+                                    onChange={handleChange}
+                                />
+                                <p>
+                                    <label htmlFor="file">
+                                         Select an image to share.
+                                    </label>
+                                </p>
+                                {shareImage && <img src={URL.createObjectURL(shareImage)} />}
+                            </UploadImage>
+                            :
+                            assetArea==="media" && (
+                            <>
+                            <input type="text" placeholder="Please enter a video link" 
+                            value={videoLink}
+                            onChange={(e)=>setVideoLink(e.target.value)} ></input>
+                            {videoLink && <ReactPlayer width={"100%"} url={videoLink}/>}
+                            </>)
+                        }
                     </Editor>
                 </SharedContent>
                 <ShareCreation>
                     <AttachAssets>
-                        <AssetButton>
+                        <AssetButton onClick={()=>switchAssetArea("image")}>
                             <img src="/images/share-image.png" alt=""/>
                         </AssetButton>
-                        <AssetButton>
+                        <AssetButton onClick={()=>switchAssetArea("media")}>
                             <img src="/images/share-video.png" alt=""/>
                         </AssetButton>
                     </AttachAssets>
@@ -49,7 +123,7 @@ function PostModal(props) {
                             Anyone
                         </AssetButton>
                     </ShareComment>
-                    <PostButton disabled={!editorText ? true: false}>
+                    <PostButton disabled={!editorText ? true: false} onClick={(event)=>postArticle(event)}>
                         POST
                     </PostButton>
                 </ShareCreation>
@@ -231,4 +305,24 @@ const Editor = styled.div`
 
 `;
 
-export default PostModal
+const UploadImage = styled.div`
+    text-align:center;
+    img{
+        width:100%;
+
+    }
+
+`;
+
+const mapStateToProps=(state)=>{
+    return {
+        user:state.userState.user,
+    };
+
+};
+
+const mapDispatchToProps=(dispatch)=>({
+    postArticle:(payload)=>dispatch(postArticleAPI(payload)),
+});
+
+export default connect(mapStateToProps,mapDispatchToProps)(PostModal);
