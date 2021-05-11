@@ -1,11 +1,11 @@
 import firebase from "firebase";
 const firebaseConfig = {
-  apiKey: "AIzaSyAl-9-nFY_9ZAVp_3JtqK_FxAWpjI5tjm0",
-  authDomain: "linkedinclone-1ecc4.firebaseapp.com",
-  projectId: "linkedinclone-1ecc4",
-  storageBucket: "linkedinclone-1ecc4.appspot.com",
-  messagingSenderId: "2985883413",
-  appId: "1:2985883413:web:c5e1b85217fb95d2201b1c",
+  apiKey: "AIzaSyBaI36zk7FWsfFjGAbK7QfAjDQy-goVHf4",
+  authDomain: "linkedin-clone-heysarthak.firebaseapp.com",
+  projectId: "linkedin-clone-heysarthak",
+  storageBucket: "linkedin-clone-heysarthak.appspot.com",
+  messagingSenderId: "964047764922",
+  appId: "1:964047764922:web:f5f352158588d72d8ff183"
 };
 
 const firebaseApp = firebase.initializeApp(firebaseConfig);
